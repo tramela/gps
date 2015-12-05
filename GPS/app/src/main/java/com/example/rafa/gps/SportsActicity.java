@@ -19,7 +19,7 @@ public class SportsActicity {
 
 
     public SportsActicity() {
-        this.userId = 1;
+        this.userId = 2;
     }
 
     public void track(Double latitude, Double longitude, Double altitude, float speed, long chron) {
