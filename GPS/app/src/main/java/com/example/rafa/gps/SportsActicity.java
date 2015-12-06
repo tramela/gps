@@ -19,7 +19,7 @@ public class SportsActicity {
 
 
     public SportsActicity() {
-        this.userId = 2;
+        this.userId = 1;
     }
 
     public void track(Double latitude, Double longitude, Double altitude, float speed, long chron) {
@@ -27,6 +27,7 @@ public class SportsActicity {
         Position currentPosition = new Position(currentDate, latitude, longitude, altitude, speed, chron);
         route.add(currentPosition);
     }
+
     public Float getTotalDistance() {
         distance = 0;
         float [] dist = new float[1];
@@ -37,8 +38,13 @@ public class SportsActicity {
                 distance += dist[0];
             }
         }
-        return distance/1000;
+        return distance;
     }
+
+    public ArrayList<Position> getRoutes() {
+        return this.route;
+    }
+
 }
 
 /*

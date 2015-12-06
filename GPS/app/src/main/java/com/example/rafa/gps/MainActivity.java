@@ -6,7 +6,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,13 +18,14 @@ import android.widget.Chronometer;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     // Layout
-    protected Chronometer cronometro;
+    protected PauseableChronometer cronometro;
 
     protected TextView velo;
     protected TextView dist;
@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Global Vars
     protected boolean isClickPause = false;
-    protected long tempoQuandoParado = 0;
     protected SportsActicity sports;
     protected long REFRESH_TIME = 1000; // refresh GPS 1s em 1s
     protected float REFRESH_DISTANCE = 0;
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         startGPS();
 
-        cronometro = (Chronometer) findViewById(R.id.chronometer);
+        cronometro = (PauseableChronometer) findViewById(R.id.chronometer);
         btStart = (Button) findViewById(R.id.btLocalizar);
         btPause = (Button) findViewById(R.id.pause);
         btReset = (Button) findViewById(R.id.stop);
@@ -73,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
         dist = (TextView) findViewById(R.id.dist);
         //grid = (ListView) findViewById(R.id.listView);
         prec = (TextView) findViewById(R.id.precisao);
-
 
         cronometro.setText("00:00:00");
         cronometro.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
@@ -94,15 +92,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isClickPause) {
-                    cronometro.setBase(SystemClock.elapsedRealtime() + tempoQuandoParado);
                     cronometro.start();
                     isClickPause = false;
 
                 } else {
                     sports = new SportsActicity();
-                    cronometro.setBase(SystemClock.elapsedRealtime());
                     cronometro.start();
-                    tempoQuandoParado = 0;
                 }
                 flag = 1 ;
                 btStart.setEnabled(false);
@@ -115,9 +110,6 @@ public class MainActivity extends AppCompatActivity {
         btPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isClickPause == false){
-                    tempoQuandoParado = cronometro.getBase() - SystemClock.elapsedRealtime();
-                }
                 cronometro.stop();
                 isClickPause = true;
                 btPause.setEnabled(false);
@@ -133,12 +125,10 @@ public class MainActivity extends AppCompatActivity {
         btReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                cronometro.stop();
-                cronometro.setText("00:00:00");
-                tempoQuandoParado = 0;
+                cronometro.reset();
                 btStart.setEnabled(true);
                 sports.distance=0;
-                dist.setText("0.0" + " km");
+                dist.setText("");
                 flag = 0;
             }
         });
@@ -152,8 +142,13 @@ public class MainActivity extends AppCompatActivity {
                 //maps.setLat(latitude);
                 //maps.setLon(longitude);
                 //maps.setLatLon(latitude, longitude);
-                Intent intent = new Intent(btMapa.getContext(), MapsActivity.class);
-                startActivity(intent);
+
+                Gson gson = new Gson();
+                String currentSport = gson.toJson(sports);
+
+                Intent mapIntent = new Intent(btMapa.getContext(), MapsActivity.class);
+                mapIntent.putExtra("currentSport", currentSport);
+                startActivity(mapIntent);
             }
         });
 
@@ -195,9 +190,18 @@ public class MainActivity extends AppCompatActivity {
             String v = String.format("%.1f",velocidade);
             velo.setText(v + " km/h");
             prec.setText(Float.toString(locat.getAccuracy()));
-            String s = String.format("%.1f", sports.getTotalDistance()); //Converte o Float em uma string com apenas uma casa decimal de forma a representar a distancia percorrida de 100m em 100m
+            String s = String.format("%.1f", sports.getTotalDistance()/1000); //Converte o Float em uma string com apenas uma casa decimal de forma a representar a distancia percorrida de 100m em 100m
             dist.setText(s + " km");
-            //velmed = sports.getTotalDistance() / cronometro.
+
+            int timeSeconds = (int) ((cronometro.getCurrentTime() / 1000) % 60);
+            float media = sports.getTotalDistance() / timeSeconds;
+            System.out.println("dist");
+            System.out.println(sports.getTotalDistance());
+            System.out.println("time");
+            System.out.println(timeSeconds);
+            if(media != 0) {
+                velmed.setText(String.format("%.1f", ((media*3600)/1000)) + " km/h");
+            }
         }
     }
 

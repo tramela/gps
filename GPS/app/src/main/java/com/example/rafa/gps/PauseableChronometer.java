@@ -5,19 +5,19 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.widget.Chronometer;
 
-public class PausableChronometer extends Chronometer {
+public class PauseableChronometer extends Chronometer {
 
     private long timeWhenStopped = 0;
 
-    public PausableChronometer(Context context) {
+    public PauseableChronometer(Context context) {
         super(context);
     }
 
-    public PausableChronometer(Context context, AttributeSet attrs) {
+    public PauseableChronometer(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public PausableChronometer(Context context, AttributeSet attrs, int defStyle) {
+    public PauseableChronometer(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 
@@ -36,10 +36,16 @@ public class PausableChronometer extends Chronometer {
     public void reset() {
         stop();
         setBase(SystemClock.elapsedRealtime());
+        this.setText("00:00:00");
         timeWhenStopped = 0;
     }
 
+    public void update() {
+        timeWhenStopped = SystemClock.elapsedRealtime() - getBase();
+    }
+
     public long getCurrentTime() {
+        this.update();
         return timeWhenStopped;
     }
 

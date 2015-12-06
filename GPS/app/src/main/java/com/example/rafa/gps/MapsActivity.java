@@ -1,5 +1,7 @@
 package com.example.rafa.gps;
 
+import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
@@ -7,8 +9,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -23,6 +29,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        String jsonMyObject = "";
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            jsonMyObject = extras.getString("currentSport");
+        }
+        this.sports = new Gson().fromJson(jsonMyObject, SportsActicity.class);
+    }
+
+    public void zoom (Double latit, Double longit){
+        Location start = new Location("");
+        start.setLatitude(latit);
+        start.setLongitude(longit);
+
+        if (start != null)
+        {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(start.getLatitude(), start.getLongitude()), 13));
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(start.getLatitude(), start.getLongitude()))
+                    .zoom(17)                   // Sets the zoom
+                    .bearing(0)                // Sets the orientation of the camera to east
+                    .tilt(0)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
     }
 
 
@@ -38,15 +71,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        sports = new SportsActicity();
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        for(Integer i = 0; i < sports.route.size(); i++) {
-            LatLng MyLoc = new LatLng(sports.route.get(i).latitude, sports.route.get(i).longitude);
-            mMap.addMarker(new MarkerOptions().position(MyLoc).title("A minha Localização"));
+        zoom(this.sports.route.get(0).latitude, this.sports.route.get(0).longitude);
+
+        ArrayList<Position> routesList = this.sports.getRoutes();
+
+        this.handleGetDirectionsResult(routesList);
+
+        /*for(Integer i = 0; i < routesList.size(); i++) {
+            LatLng MyLoc = new LatLng(routesList.get(i).latitude, routesList.get(i).longitude);
+            mMap.addMarker(new MarkerOptions().position(MyLoc).title("pos" + Integer.toString(i)));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(MyLoc));
+        }*/
+    }
+
+    public void handleGetDirectionsResult(ArrayList<Position> routesList)
+    {
+        /*Polyline newPolyline;
+        GoogleMap mMap = ((SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+        PolylineOptions rectLine = new PolylineOptions().width(3).color(Color.BLUE);
+
+        for(int i = 0 ; i < routesList.size() ; i++) {
+            LatLng MyLoc = new LatLng(routesList.get(i).latitude, routesList.get(i).longitude);
+            rectLine.add(MyLoc);
         }
-    ;
+
+        newPolyline = mMap.addPolyline(rectLine);*/
+
+        for(int i = 0 ; i < routesList.size()-1; i++) {
+            LatLng prev = new LatLng(routesList.get(i).latitude, routesList.get(i).longitude);
+            LatLng current = new LatLng(routesList.get(i+1).latitude, routesList.get(i+1).longitude);
+
+            mMap.addPolyline((new PolylineOptions())
+                    .add(prev, current).width(20).color(Color.BLUE)
+                    .visible(true));
+        }
     }
 }
