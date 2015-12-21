@@ -1,5 +1,6 @@
 package com.example.rafa.gps;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -18,11 +19,12 @@ import android.widget.Chronometer;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends    AppCompatActivity {
 
     // Layout
     protected PauseableChronometer cronometro;
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     protected TextView dist;
     protected TextView prec;
     protected TextView velmed;
+    protected TextView cal;
 
     protected ListView grid;
 
@@ -39,10 +42,17 @@ public class MainActivity extends AppCompatActivity {
     // Global Vars
     protected boolean isClickPause = false;
     protected SportsActicity sports;
+    protected DataBase data;
     protected long REFRESH_TIME = 1000; // refresh GPS 1s em 1s
     protected float REFRESH_DISTANCE = 0;
-
+    protected int peso = 70; //Peso médio de um cidadão
     protected int flag = 0;
+    protected int calorias=0;
+    protected float media;
+    protected AlertDialog.Builder dialogBuilder;
+    protected String s;
+
+
 
 
     @Override
@@ -70,8 +80,9 @@ public class MainActivity extends AppCompatActivity {
         velo = (TextView) findViewById(R.id.velo);
         velmed = (TextView) findViewById(R.id.velmed);
         dist = (TextView) findViewById(R.id.dist);
-        //grid = (ListView) findViewById(R.id.listView);
+        //grid = (ListView) findViewById(R.id.listView);    //Debug Lista de Coordenadas
         prec = (TextView) findViewById(R.id.precisao);
+        cal = (TextView) findViewById(R.id.cal);
 
         cronometro.setText("00:00:00");
         cronometro.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
@@ -87,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         //Botão START
         btStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +107,8 @@ public class MainActivity extends AppCompatActivity {
                     cronometro.start();
                     isClickPause = false;
 
-                } else {
+                }
+                else {
                     sports = new SportsActicity();
                     cronometro.start();
                 }
@@ -125,24 +138,24 @@ public class MainActivity extends AppCompatActivity {
         btReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mensagem();
                 cronometro.reset();
                 btStart.setEnabled(true);
                 sports.distance=0;
+                calorias=0;
+                media=0;
                 dist.setText("");
+                velmed.setText("");
+                velo.setText("");
+                cal.setText("");
                 flag = 0;
             }
         });
 
-        //Botão ROTA
+        //Botão MAPA
         btMapa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //maps = new MapsActivity();
-                //Intent intent = new Intent(btrota.getContext(), MapsActivity.class);
-                //maps.setLat(latitude);
-                //maps.setLon(longitude);
-                //maps.setLatLon(latitude, longitude);
-
                 Gson gson = new Gson();
                 String currentSport = gson.toJson(sports);
 
@@ -154,6 +167,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void mensagem() {
+        int seconds = (int) (cronometro.getCurrentTime()/ 1000) % 60 ;
+        int minutes = (int) ((cronometro.getCurrentTime() / (1000*60)) % 60);
+        int hours   = (int) ((cronometro.getCurrentTime() / (1000*60*60)) % 24);
+        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle("Resumo da Actividade");
+
+        dialogBuilder.setMessage("Duração: " + hours +":" + minutes + ":" + seconds + "\n" + "Distância: " + s + " km \n" + "Calorias: " + Integer.toString(calorias) +
+                " kcal\n" + "Vel. Média: " + String.format("%.1f", ((media * 3600) / 1000)) + " km/h");
+
+        AlertDialog dialog = dialogBuilder.create();
+        dialog.show();
+    }
     //Método que faz a leitura de fato dos valores recebidos do GPS
     public void startGPS() {
         LocationManager lManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -161,15 +187,11 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationChanged(Location locat) {
                 updateView(locat);
             }
-
             public void onStatusChanged(String provider, int status, Bundle extras) {
             }
-
             public void onProviderEnabled(String provider) {
-
                 Toast.makeText(getBaseContext(), "GPS LIGADO!! ", Toast.LENGTH_SHORT).show();
             }
-
             public void onProviderDisabled(String provider) {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 startActivity(intent);
@@ -179,29 +201,42 @@ public class MainActivity extends AppCompatActivity {
        lManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, REFRESH_TIME, REFRESH_DISTANCE, lListener);
     }
 
-
-
     //  Método que faz a atualização da tela para o utilizador.
     public void updateView(Location locat){
         if (flag == 1) {
             sports.track(locat.getLatitude(), locat.getLongitude(), locat.getAltitude(), locat.getSpeed(), cronometro.getBase());
-            //refreshGrid();
+
+            //VELOCIDADE
             Float velocidade = (locat.getSpeed() * 3600) / 1000;
             String v = String.format("%.1f",velocidade);
             velo.setText(v + " km/h");
+
+            //PRECISÃO
             prec.setText(Float.toString(locat.getAccuracy()));
-            String s = String.format("%.1f", sports.getTotalDistance()/1000); //Converte o Float em uma string com apenas uma casa decimal de forma a representar a distancia percorrida de 100m em 100m
+
+            //DISTANCIA
+            s = String.format("%.1f", sports.getTotalDistance()/1000); //Converte o Float em uma string com apenas uma casa decimal de forma a representar a distancia percorrida de 100m em 100m
             dist.setText(s + " km");
 
-            int timeSeconds = (int) ((cronometro.getCurrentTime() / 1000) % 60);
-            float media = sports.getTotalDistance() / timeSeconds;
-            System.out.println("dist");
-            System.out.println(sports.getTotalDistance());
-            System.out.println("time");
-            System.out.println(timeSeconds);
-            if(media != 0) {
+            //VELOCIDADE MEDIA
+            int timeSeconds = (int) ((cronometro.getCurrentTime())/1000);
+            media = sports.getTotalDistance() / timeSeconds;
+            if(media != 0 ) {
                 velmed.setText(String.format("%.1f", ((media*3600)/1000)) + " km/h");
             }
+            //CALORIAS
+            calorias = (int) ((sports.getTotalDistance()/1000) * peso);
+            if(sports.getTotalDistance()/1000 >= 0.05) {
+                cal.setText(Integer.toString(calorias) + " kcal");
+            }
+            else{
+                cal.setText("0 kcal");
+            }
+            //DEBUG CONSOLA
+            System.out.println("dist: " + sports.getTotalDistance());
+            System.out.println("time: " + timeSeconds);
+            System.out.println("calorias: " + calorias);
+
         }
     }
 

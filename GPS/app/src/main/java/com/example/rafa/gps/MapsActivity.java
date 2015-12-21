@@ -50,7 +50,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(start.getLatitude(), start.getLongitude()))
-                    .zoom(17)                   // Sets the zoom
+                    .zoom(15)                   // Sets the zoom
                     .bearing(0)                // Sets the orientation of the camera to east
                     .tilt(0)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
@@ -73,31 +73,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap = googleMap;
 
-        zoom(this.sports.route.get(0).latitude, this.sports.route.get(0).longitude);
-
-        ArrayList<Position> routesList = this.sports.getRoutes();
-
-        this.handleGetDirectionsResult(routesList);
-
-        /*for(Integer i = 0; i < routesList.size(); i++) {
-            LatLng MyLoc = new LatLng(routesList.get(i).latitude, routesList.get(i).longitude);
-            mMap.addMarker(new MarkerOptions().position(MyLoc).title("pos" + Integer.toString(i)));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(MyLoc));
-        }*/
+        if(this.sports.flag2 != 0) {
+            zoom(this.sports.route.get(0).latitude, this.sports.route.get(0).longitude);
+            ArrayList<Position> routesList = this.sports.getRoutes();
+            this.handleGetDirectionsResult(routesList);
+        }
     }
 
     public void handleGetDirectionsResult(ArrayList<Position> routesList)
     {
-        /*Polyline newPolyline;
-        GoogleMap mMap = ((SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        PolylineOptions rectLine = new PolylineOptions().width(3).color(Color.BLUE);
-
-        for(int i = 0 ; i < routesList.size() ; i++) {
-            LatLng MyLoc = new LatLng(routesList.get(i).latitude, routesList.get(i).longitude);
-            rectLine.add(MyLoc);
-        }
-
-        newPolyline = mMap.addPolyline(rectLine);*/
 
         for(int i = 0 ; i < routesList.size()-1; i++) {
             LatLng prev = new LatLng(routesList.get(i).latitude, routesList.get(i).longitude);
