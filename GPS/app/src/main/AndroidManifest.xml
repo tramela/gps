@@ -38,6 +38,11 @@
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" >
         </activity>
+        <activity
+            android:name=".DataBaseActivity"
+            android:label="@string/title_activity_data_base"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
     </application>
 
 </manifest>

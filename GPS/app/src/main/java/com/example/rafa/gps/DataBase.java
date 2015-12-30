@@ -8,19 +8,21 @@ import android.util.Log;
 public class DataBase extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "iseprunning.db";
-    public static final String TABLE_NAME = "contactos2";
+    public static final String TABLE_NAME = "historico";
     private static final int DATABASE_VERSION = 1;
     public static final String ID = "_id";
-    public static final String NOME = "nome";
+    public static final String DATE = "data";
     public static final String DURATION = "duracao";
     public static final String DISTANCE = "distancia";
-    public static final String CALORIAS = "calorias";
+    public static final String CALORIES = "calorias";
     private static final String DATABASE_CREATE = "create table "
             + TABLE_NAME + "( " + ID
-            + " integer primary key autoincrement, " + NOME
+            + " integer primary key autoincrement, " + DATE
             + " text not null, " + DURATION + " text not null, "
             + DISTANCE+" text not null" +
-            ", "+ CALORIAS +" BLOB);";
+            ", "+ CALORIES +" text not null);";
+
+    public int student_ID;
 
     public DataBase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

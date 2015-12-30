@@ -22,9 +22,11 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
-public class MainActivity extends    AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
     // Layout
     protected PauseableChronometer cronometro;
@@ -42,6 +44,7 @@ public class MainActivity extends    AppCompatActivity {
     // Global Vars
     protected boolean isClickPause = false;
     protected SportsActicity sports;
+    protected DataBaseAdapter db;
     protected DataBase data;
     protected long REFRESH_TIME = 1000; // refresh GPS 1s em 1s
     protected float REFRESH_DISTANCE = 0;
@@ -64,6 +67,8 @@ public class MainActivity extends    AppCompatActivity {
         setSupportActionBar(toolbar);
 
         startGPS();
+
+        db = new DataBaseAdapter(getBaseContext());
 
         cronometro = (PauseableChronometer) findViewById(R.id.chronometer);
         btStart = (Button) findViewById(R.id.btLocalizar);
@@ -171,14 +176,30 @@ public class MainActivity extends    AppCompatActivity {
         int seconds = (int) (cronometro.getCurrentTime()/ 1000) % 60 ;
         int minutes = (int) ((cronometro.getCurrentTime() / (1000*60)) % 60);
         int hours   = (int) ((cronometro.getCurrentTime() / (1000*60*60)) % 24);
+        String dura =  hours + ":" + minutes + ":" + seconds;
+
+        /*Calendar c = Calendar.getInstance();
+        System.out.println("Current time => " + c.getTime());
+
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+        String formattedDate = df.format(c.getTime());
+        */
+        String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date()); //get current date
+        System.out.println("data: " + date);
+
+
+
         dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setTitle("Resumo da Actividade");
 
-        dialogBuilder.setMessage("Duração: " + hours +":" + minutes + ":" + seconds + "\n" + "Distância: " + s + " km \n" + "Calorias: " + Integer.toString(calorias) +
+        dialogBuilder.setMessage("Duração: " + dura + "\n" + "Distância: " + s + " km \n" + "Calorias: " + Integer.toString(calorias) +
                 " kcal\n" + "Vel. Média: " + String.format("%.1f", ((media * 3600) / 1000)) + " km/h");
+
+        db.createContacto(date, "Duração: " + dura, "Distância: " + s + " km ", Integer.toString(calorias) + " kcal");
 
         AlertDialog dialog = dialogBuilder.create();
         dialog.show();
+
     }
     //Método que faz a leitura de fato dos valores recebidos do GPS
     public void startGPS() {
@@ -267,12 +288,13 @@ public class MainActivity extends    AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        Intent database = new Intent(this, DataBaseActivity.class);
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            startActivity(database);
         }
-
+zzz
         return super.onOptionsItemSelected(item);
     }
 }
