@@ -16,13 +16,13 @@ public class DataBase extends SQLiteOpenHelper {
     public static final String DISTANCE = "distancia";
     public static final String CALORIES = "calorias";
     private static final String DATABASE_CREATE = "create table "
-            + TABLE_NAME + "( " + ID
-            + " integer primary key autoincrement, " + DATE
-            + " text not null, " + DURATION + " text not null, "
-            + DISTANCE+" text not null" +
-            ", "+ CALORIES +" text not null);";
+            + TABLE_NAME + "( "
+            + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + DATE + " TEXT, "
+            + DURATION + " TEXT, "
+            + DISTANCE +" TEXT, "
+            + CALORIES +" TEXT);";
 
-    public int student_ID;
 
     public DataBase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

@@ -169,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(mapIntent);
             }
         });
-
     }
 
     public void mensagem() {
@@ -195,8 +194,11 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setMessage("Duração: " + dura + "\n" + "Distância: " + s + " km \n" + "Calorias: " + Integer.toString(calorias) +
                 " kcal\n" + "Vel. Média: " + String.format("%.1f", ((media * 3600) / 1000)) + " km/h");
 
-        db.createContacto(date, "Duração: " + dura, "Distância: " + s + " km ", Integer.toString(calorias) + " kcal");
-
+        boolean inserted = db.insert(date, "Duração: " + dura, "Distância: " + s + " km ", Integer.toString(calorias) + " kcal");
+        if(inserted = true)
+            Toast.makeText(MainActivity.this, "Data Inserted",Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(MainActivity.this, "Data not Inserted",Toast.LENGTH_LONG).show();
         AlertDialog dialog = dialogBuilder.create();
         dialog.show();
 
@@ -294,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             startActivity(database);
         }
-zzz
+
         return super.onOptionsItemSelected(item);
     }
 }
